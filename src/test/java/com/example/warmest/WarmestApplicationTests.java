@@ -4,8 +4,16 @@ import com.example.warmest.service.WarmestDataStructureService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+/**
+ * Unit tests for the in-memory {@link WarmestDataStructureService}.
+ *
+ * The {@code warmestComplexScenario} test reproduces the example trace
+ * from the exercise document line-by-line and asserts every expected
+ * return value.
+ */
 class WarmestApplicationTests {
 
     private WarmestDataStructureService warmestService;
@@ -15,9 +23,8 @@ class WarmestApplicationTests {
         warmestService = new WarmestDataStructureService();
     }
 
-    /*
-    * Scenario 1 - Empty state
-    * */
+    // ----- Scenario 1: empty state ----------------------------------------
+
     @Test
     void shouldReturnNullWhenWarmestEmpty() {
         assertNull(warmestService.getWarmest());
@@ -34,9 +41,8 @@ class WarmestApplicationTests {
         assertEquals("a", warmestService.getWarmest());
     }
 
-    /*
-     * Scenario 2 - Update same key
-     * */
+    // ----- Scenario 2: updating an existing key ---------------------------
+
     @Test
     void putShouldReturnOldValueWhenKeyExists() {
         warmestService.put("a", 100);
@@ -48,7 +54,6 @@ class WarmestApplicationTests {
     void getShouldReturnUpdatedValue() {
         warmestService.put("a", 100);
         warmestService.put("a", 101);
-
         assertEquals(101, warmestService.get("a"));
     }
 
@@ -56,7 +61,6 @@ class WarmestApplicationTests {
     void warmestShouldStillBeAAfterUpdate() {
         warmestService.put("a", 100);
         warmestService.put("a", 101);
-
         assertEquals("a", warmestService.getWarmest());
     }
 
@@ -70,159 +74,47 @@ class WarmestApplicationTests {
         assertEquals("a", warmestService.getWarmest());
     }
 
-    /*
-    * Scenario 3 - Remove flow
-    * */
+    // ----- Scenario 3: removal flow ---------------------------------------
+
     @Test
     void removeShouldReturnValueAndThenNull() {
         warmestService.put("a", 100);
-        Integer firstRemoveValue = warmestService.remove("a");
-        assertEquals(100, firstRemoveValue);
-
-        Integer secondRemoveValue = warmestService.remove("a");
-        assertNull(secondRemoveValue);
+        assertEquals(100, warmestService.remove("a"));
+        assertNull(warmestService.remove("a"));
     }
 
     @Test
     void warmestShouldBeNullAfterRemove() {
         warmestService.put("a", 100);
         warmestService.remove("a");
-
         assertNull(warmestService.getWarmest());
     }
 
-    /*
-     * Scenario 4 - Multi key scenario
-     * */
+    // ----- Scenario 4: full exercise example trace ------------------------
 
     @Test
     void warmestComplexScenario() {
-        String warmest = warmestService.getWarmest();// 🡪 returns null
-        assertNull(warmest);
-        System.out.println("getWarmest -> " + warmest);
+        assertNull(warmestService.getWarmest());                              // → null
+        assertNull(warmestService.put("a", 100));                             // → null
+        assertEquals("a", warmestService.getWarmest());             // → a
+        assertEquals(100, warmestService.put("a", 101));            // → 100
+        assertEquals(101, warmestService.put("a", 101));            // → 101
+        assertEquals(101, warmestService.get("a"));                 // → 101
+        assertEquals("a", warmestService.getWarmest());             // → a
+        assertEquals(101, warmestService.remove("a"));         // → 101
+        assertNull(warmestService.remove("a"));                          // → null
+        assertNull(warmestService.getWarmest());                              // → null
 
-        Integer putA = warmestService.put("a", 100);// 🡪 returns null
-        assertNull(putA);
-        System.out.println("putA -> " + putA);
-
-        warmest = warmestService.getWarmest();;// 🡪 returns a
-        assertEquals("a", warmest);
-        System.out.println("getWarmest -> " + warmest);
-
-        putA = warmestService.put ("a", 101); //🡪 returns 100
-        assertEquals(100, putA);
-        System.out.println("putA -> " + putA);
-
-        putA = warmestService.put ("a", 101); //🡪 returns 101
-        assertEquals(101, putA);
-        System.out.println("putA -> " + putA);
-
-        Integer getA = warmestService.get("a"); //🡪 returns 101
-        assertEquals(101, getA);
-        System.out.println("getA -> " + getA);
-
-        warmest = warmestService.getWarmest(); //🡪 returns a
-        assertEquals("a", warmest);
-        System.out.println("getWarmest -> " + warmest);
-
-        Integer removeA = warmestService.remove("a"); //🡪 return 101
-        assertEquals(101, removeA);
-        System.out.println("removeA -> " + removeA);
-
-        removeA = warmestService.remove("a"); //🡪 return null
-        assertNull(removeA);
-        System.out.println("removeA -> " + removeA);
-
-        warmest = warmestService.getWarmest(); //🡪 returns null
-        assertNull(warmest);
-        System.out.println("getWarmest -> " + warmest);
-
-        putA = warmestService.put ("a", 100); //🡪 returns null
-        assertNull(putA);
-        System.out.println("putA -> " + putA);
-
-        Integer putB = warmestService.put ("b", 200); //🡪 returns null
-        assertNull(putB);
-        System.out.println("putB -> " + putB);
-
-        Integer putC = warmestService.put ("c", 300); //🡪 returns null
-        assertNull(putC);
-        System.out.println("putB -> " + putC);
-
-        warmest = warmestService.getWarmest(); //🡪 returns c
-        assertEquals("c", warmest);
-        System.out.println("getWarmest -> " + warmest);
-
-        Integer removeB = warmestService.remove("b"); //🡪 return 200
-        assertEquals(200, removeB);
-        System.out.println("removeB -> " + removeB);
-
-        warmest = warmestService.getWarmest(); //🡪 returns c
-        assertEquals("c", warmest);
-        System.out.println("getWarmest -> " + warmest);
-
-        Integer removeC = warmestService.remove("c"); //🡪 return 300
-        assertEquals(300, removeC);
-        System.out.println("removeC -> " + removeC);
-
-        warmest = warmestService.getWarmest(); //🡪 returns a
-        assertEquals("a", warmest);
-        System.out.println("getWarmest -> " + warmest);
-
-        removeA = warmestService.remove("a"); //🡪 return 100
-        assertEquals(100, removeA);
-        System.out.println("removeA -> " + removeA);
-
-        warmest = warmestService.getWarmest(); //🡪 returns null
-        assertNull(warmest);
-        System.out.println("getWarmest -> " + warmest);
-
-        removeA = warmestService.remove("a");// 🡪 return null
-        assertNull(removeA);
-        System.out.println("removeA -> " + removeA);
+        assertNull(warmestService.put("a", 100));                             // → null
+        assertNull(warmestService.put("b", 200));                             // → null
+        assertNull(warmestService.put("c", 300));                             // → null
+        assertEquals("c", warmestService.getWarmest());             // → c
+        assertEquals(200, warmestService.remove("b"));         // → 200
+        assertEquals("c", warmestService.getWarmest());             // → c
+        assertEquals(300, warmestService.remove("c"));         // → 300
+        assertEquals("a", warmestService.getWarmest());             // → a
+        assertEquals(100, warmestService.remove("a"));         // → 100
+        assertNull(warmestService.getWarmest());                             // → null
+        assertNull(warmestService.remove("a"));                         // → null
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//    @Test
-//    void shouldUpdateWarmestAfterGet()
-
-//    @Test
-//    void shouldReturnPreviousValueOnPut()
 }

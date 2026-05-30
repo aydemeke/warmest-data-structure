@@ -1,7 +1,6 @@
 package com.example.warmest.controller;
 
 import com.example.warmest.api.WarmestDataStructureInterface;
-import com.example.warmest.service.WarmestDataStructureService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

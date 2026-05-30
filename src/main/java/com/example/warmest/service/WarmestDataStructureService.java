@@ -27,7 +27,7 @@ public class WarmestDataStructureService implements WarmestDataStructureInterfac
     }
 
     @Override
-    public Integer put(String key, int value) {
+    public synchronized Integer put(String key, int value) {
         validateKey(key);
 
         Node existing = nodesByKey.get(key);
@@ -44,7 +44,7 @@ public class WarmestDataStructureService implements WarmestDataStructureInterfac
     }
 
     @Override
-    public Integer remove(String key) {
+    public synchronized Integer remove(String key) {
         validateKey(key);
 
         Node node = nodesByKey.get(key);
@@ -57,7 +57,7 @@ public class WarmestDataStructureService implements WarmestDataStructureInterfac
     }
 
     @Override
-    public Integer get(String key) {
+    public synchronized Integer get(String key) {
         validateKey(key);
 
         Node node = nodesByKey.get(key);
@@ -69,7 +69,7 @@ public class WarmestDataStructureService implements WarmestDataStructureInterfac
     }
 
     @Override
-    public String getWarmest() {
+    public synchronized String getWarmest() {
         if (head.getNext() == tail)
             return null;
         return head.getNext().getKey();

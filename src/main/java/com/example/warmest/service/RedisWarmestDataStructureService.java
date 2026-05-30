@@ -2,8 +2,14 @@ package com.example.warmest.service;
 
 import com.example.warmest.api.WarmestDataStructureInterface;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @ConditionalOnProperty(
@@ -11,71 +17,70 @@ import org.springframework.stereotype.Service;
         havingValue = "redis"
 )
 public class RedisWarmestDataStructureService implements WarmestDataStructureInterface {
+
+    // ----- Redis key names -------------------------------------------------
     private static final String VALUES_KEY = "warmest:values";
-    private static final String ORDER_KEY = "warmest:order";
+    private static final String NEXT_KEY   = "warmest:next";
+    private static final String PREV_KEY   = "warmest:prev";
+    private static final String HEAD_KEY   = "warmest:head";
+    private static final String TAIL_KEY   = "warmest:tail";
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private static final List<String> KEYS = List.of(
+            VALUES_KEY, NEXT_KEY, PREV_KEY, HEAD_KEY, TAIL_KEY
+    );
 
-    public RedisWarmestDataStructureService(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    // ----- Lua scripts -----------------------------------------
+    private final RedisScript<String> putScript    = loadScript("redis/put.lua");
+    private final RedisScript<String> getScript    = loadScript("redis/get.lua");
+    private final RedisScript<String> removeScript = loadScript("redis/remove.lua");
+
+    private final StringRedisTemplate redis;
+
+    public RedisWarmestDataStructureService(StringRedisTemplate redis) {
+        this.redis = redis;
     }
-
 
     @Override
     public Integer put(String key, int value) {
         validateKey(key);
-
-        Object existing = redisTemplate.opsForHash().get(VALUES_KEY, key);
-
-        Integer previous = existing != null
-                ? Integer.valueOf(existing.toString())
-                : null;
-
-        redisTemplate.opsForHash().put(VALUES_KEY, key, value);
-        redisTemplate.opsForList().remove(ORDER_KEY, 0, key);
-        redisTemplate.opsForList().leftPush(ORDER_KEY, key);
-
-        return previous;
+        String previous = redis.execute(putScript, KEYS, key, Integer.toString(value));
+        return parse(previous);
     }
 
     @Override
     public Integer remove(String key) {
         validateKey(key);
-
-        Object existing = redisTemplate.opsForHash() .get(VALUES_KEY, key);
-
-        if (existing == null)
-            return null;
-
-        redisTemplate.opsForHash() .delete(VALUES_KEY, key);
-        redisTemplate.opsForList() .remove(ORDER_KEY, 0, key);
-
-        return Integer.valueOf(existing.toString());
+        String previous = redis.execute(removeScript, KEYS, key);
+        return parse(previous);
     }
 
     @Override
     public Integer get(String key) {
         validateKey(key);
-
-        Object value = redisTemplate.opsForHash().get(VALUES_KEY, key);
-        if (value == null)
-            return null;
-
-        redisTemplate.opsForList().remove(ORDER_KEY, 0, key);
-        redisTemplate.opsForList() .leftPush(ORDER_KEY, key);
-
-        return Integer.valueOf(value.toString());
+        String value = redis.execute(getScript, KEYS, key);
+        return parse(value);
     }
+
 
     @Override
     public String getWarmest() {
-        Object value = redisTemplate.opsForList()
-                .index(ORDER_KEY, 0);
-
-        return value != null ? value.toString(): null;
+        return redis.opsForValue().get(HEAD_KEY);
     }
 
-    private void validateKey(String key) {
+    // ----- helpers ---------------------------------------------------------
+
+    private static RedisScript<String> loadScript(String path) {
+        DefaultRedisScript<String> script = new DefaultRedisScript<>();
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource(path)));
+        script.setResultType(String.class);
+        return script;
+    }
+
+    private static Integer parse(String value) {
+        return value == null ? null : Integer.valueOf(value);
+    }
+
+    private static void validateKey(String key) {
         if (key == null || key.isBlank()) {
             throw new IllegalArgumentException("Key cannot be null or blank");
         }
