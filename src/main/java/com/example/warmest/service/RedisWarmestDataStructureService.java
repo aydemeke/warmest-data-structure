@@ -1,6 +1,6 @@
 package com.example.warmest.service;
 
-import com.example.warmest.api.WarmestDataStructureInterface;
+import com.example.warmest.core.WarmestDataStructureInterface;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -20,18 +20,18 @@ public class RedisWarmestDataStructureService implements WarmestDataStructureInt
 
     // ----- Redis key names -------------------------------------------------
     private static final String VALUES_KEY = "warmest:values";
-    private static final String NEXT_KEY   = "warmest:next";
-    private static final String PREV_KEY   = "warmest:prev";
-    private static final String HEAD_KEY   = "warmest:head";
-    private static final String TAIL_KEY   = "warmest:tail";
+    private static final String NEXT_KEY = "warmest:next";
+    private static final String PREV_KEY = "warmest:prev";
+    private static final String HEAD_KEY = "warmest:head";
+    private static final String TAIL_KEY = "warmest:tail";
 
     private static final List<String> KEYS = List.of(
             VALUES_KEY, NEXT_KEY, PREV_KEY, HEAD_KEY, TAIL_KEY
     );
 
     // ----- Lua scripts -----------------------------------------
-    private final RedisScript<String> putScript    = loadScript("redis/put.lua");
-    private final RedisScript<String> getScript    = loadScript("redis/get.lua");
+    private final RedisScript<String> putScript = loadScript("redis/put.lua");
+    private final RedisScript<String> getScript = loadScript("redis/get.lua");
     private final RedisScript<String> removeScript = loadScript("redis/remove.lua");
 
     private final StringRedisTemplate redis;

@@ -1,4 +1,4 @@
-package com.example.warmest.api;
+package com.example.warmest.core;
 
 public interface WarmestDataStructureInterface {
     Integer put(String key, int value);

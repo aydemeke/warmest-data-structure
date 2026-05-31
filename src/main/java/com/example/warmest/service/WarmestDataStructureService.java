@@ -1,6 +1,6 @@
 package com.example.warmest.service;
 
-import com.example.warmest.api.WarmestDataStructureInterface;
+import com.example.warmest.core.WarmestDataStructureInterface;
 import com.example.warmest.model.Node;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
