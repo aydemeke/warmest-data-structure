@@ -27,16 +27,18 @@ class WarmestApplicationTests {
 
     @Test
     void shouldReturnNullWhenWarmestEmpty() {
-        assertNull(warmestService.getWarmest());
+        String warmestKey = warmestService.getWarmest();
+        assertNull(warmestKey);
     }
 
     @Test
     void putShouldReturnNullFirstInsert() {
-        assertNull(warmestService.put("a", 100));
+        Integer previous = warmestService.put("a", 100);
+        assertNull(previous);
     }
 
     @Test
-    void warmestShouldBeAAfterFirstPut() {
+    void warmestShouldBe_a_AfterFirstPut() {
         warmestService.put("a", 100);
         assertEquals("a", warmestService.getWarmest());
     }
@@ -58,7 +60,7 @@ class WarmestApplicationTests {
     }
 
     @Test
-    void warmestShouldStillBeAAfterUpdate() {
+    void warmestShouldStillBe_a_AfterUpdate() {
         warmestService.put("a", 100);
         warmestService.put("a", 101);
         assertEquals("a", warmestService.getWarmest());
